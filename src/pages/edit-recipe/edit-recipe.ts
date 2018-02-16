@@ -5,6 +5,7 @@ import {
 } from 'ionic-angular';
 import {FormArray, FormControl, FormGroup, Validators} from "@angular/forms";
 import {RecipesService} from "../../services/recipes";
+import {Recipe} from "../../models/recipe";
 
 @IonicPage()
 @Component({
@@ -15,6 +16,8 @@ export class EditRecipePage implements OnInit{
   mode ='New';
   selectOptions = ['Easy', 'Medium', 'Hard'];
   recipeForm: FormGroup;
+  recipe: Recipe;
+  index: number;
 
   constructor(private navParams: NavParams,
               private actionScheetController: ActionSheetController,
@@ -25,6 +28,10 @@ export class EditRecipePage implements OnInit{
 
   ngOnInit(){
     this.mode = this.navParams.get('mode');
+    if(this.mode == 'Edit') {
+      this.recipe = this.navParams.get('recipe');
+      this.index = this.navParams.get('index');
+    }
     this.initializeForm();
   }
 
@@ -35,6 +42,9 @@ export class EditRecipePage implements OnInit{
       ingredients = value.ingredients.map(name => {
         return {name: name, amount: 1};
       });
+    }
+    if (this.mode == 'Edit'){
+      this.recipesService.updateRecipe(this.index, value.title, value.desciption, value.difficulty, ingredients);
     }
     this.recipesService.addRecipe(value.title,value.desciption, value.difficulty, value.ingredients);
     this.recipeForm.reset();
@@ -120,11 +130,25 @@ export class EditRecipePage implements OnInit{
   }
 
   private initializeForm(){
+    let title = null;
+    let desciption = null;
+    let difficulty = 'Medium';
+    let ingredients = [];
+
+    if (this.mode == 'Edit'){
+      title = this.recipe.title;
+      desciption = this.recipe.desciption;
+      difficulty = this.recipe.difficulty;
+      for (let ingredient of this.recipe.ingredients){
+        ingredients.push(new FormControl(ingredient.name, Validators.required));
+      }
+    }
+
     this.recipeForm = new FormGroup({
-      'title': new FormControl(null, Validators.required),
-      'desciption': new FormControl(null, Validators.required),
-      'difficulty': new FormControl('Medium', Validators.required),
-      'ingredients': new FormArray([]),
+      'title': new FormControl(title, Validators.required),
+      'desciption': new FormControl(desciption, Validators.required),
+      'difficulty': new FormControl(desciption, Validators.required),
+      'ingredients': new FormArray(ingredients),
     });
   }
 
